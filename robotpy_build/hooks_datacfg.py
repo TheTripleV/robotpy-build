@@ -76,6 +76,7 @@ class MethodData(FunctionData):
 
 class ClassData(BaseModel):
     ignore: bool = False
+    ignored_bases: List[str] = []
     methods: Dict[str, Optional[MethodData]] = {}
 
 

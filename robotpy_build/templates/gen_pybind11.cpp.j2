@@ -10,7 +10,7 @@
 {% if fn.data.cpp_code %}
 {{ fn.data.cpp_code }}
 {% elif not fn.x_genlambda %}
-&{% if cls %}{{ fn.namespace }}{{ cls.name }}::{% endif %}{{ fn.name }}
+&{% if cls %}{{ cls.x_qualname }}::{% endif %}{{ fn.name }}
 {% else %}
 []({{ fn.x_in_params | join(', ', attribute='x_decl') }}) {
           {% for stmt in fn.x_lambda_pre %}
@@ -52,7 +52,7 @@
 
 {%- macro genprop(cls, prop) %}
     {% if prop.array_size is defined %}
-    .def_property_readonly("{{ prop.name }}", []({{ prop.namespace}}{{ cls.name }}& inst) {
+    .def_property_readonly("{{ prop.x_name }}", []({{ cls.x_qualname }}& inst) {
         return py::memoryview(py::buffer_info(
           &inst.{{ prop.name }}, sizeof({{ prop.type }}),
           py::format_descriptor<{{ prop.type }}>::format(),
@@ -60,9 +60,9 @@
         ));
     })
     {% elif prop.array %}
-    .def_property("{{ prop.name }}",
-      [](const {{ prop.namespace}}{{ cls.name }}& inst) { return inst.{{ prop.name}}; },
-      []({{ prop.namespace}}{{ cls.name }}& inst, const {{ prop.type }} v) {inst.{{ prop.name}} = v; })
+    .def_property("{{ prop.x_name }}",
+      [](const {{ cls.x_qualname }}& inst) { return inst.{{ prop.name}}; },
+      []({{ cls.x_qualname }}& inst, const {{ prop.type }} v) {inst.{{ prop.name}} = v; })
     {% else %}
     .def_
       {%- if prop.constant or prop.constexpr -%}
@@ -71,7 +71,7 @@
         readwrite
       {%- endif -%}
       {%- if prop.static %}_static{% endif -%}
-      ("{{ prop.name }}", &{{ prop.namespace }}{{ cls.name }}::{{ prop.name}})
+      ("{{ prop.x_name }}", &{{ cls.x_qualname }}::{{ prop.name}})
     {% endif %}
 {% endmacro -%}
 

@@ -84,7 +84,7 @@ def header_hook(header, data):
         _enum_hook(en, global_data, global_data.enums)
 
 
-def _function_hook(fn, global_data, fn_data, typ):
+def _function_hook(fn, global_data, fn_data, typ, internal=False):
     """shared with methods/functions"""
 
     # Ignore operators, move constructors, copy constructors
@@ -296,11 +296,11 @@ def _function_hook(fn, global_data, fn_data, typ):
         for out in reversed(x_temps):
             x_lambda_pre.insert(0, "%(x_type)s %(name)s = 0" % out)
 
-    # Rename internal functions
-    if data.internal:
-        x_name = "_" + x_name
-    elif data.rename:
+    # Rename functions
+    if data.rename:
         x_name = data.rename
+    elif data.internal or internal:
+        x_name = "_" + x_name
     elif fn["constructor"]:
         x_name = "__init__"
 
@@ -312,7 +312,11 @@ def _function_hook(fn, global_data, fn_data, typ):
     elif "doxygen" in fn:
         # work around a CppHeaderParser bug
         doc = fn["doxygen"].rpartition("*//*")[2]
-        doc = sphinxify.process_raw(doc)
+        # try:
+        #     doc = sphinxify.process_raw(doc)
+        # except:
+        #     print(repr(doc)
+        #     raise
 
     if doc:
         # TODO
@@ -367,6 +371,8 @@ def class_hook(cls, data):
         print("WARNING: class", cls["name"], "missing")
         class_data = ClassData()
 
+    print("ignored", class_data.ignored_bases)
+
     # fix enum paths
     for e in cls["enums"]["public"]:
         e["x_namespace"] = e["namespace"] + "::" + cls["name"] + "::"
@@ -380,6 +386,12 @@ def class_hook(cls, data):
             base["x_qualname"] = base["class"]
 
         base["x_qualname_"] = base["x_qualname"].replace(":", "_")
+
+    cls["x_inherits"] = [
+        base
+        for base in cls["inherits"]
+        if base["x_qualname"] not in class_data.ignored_bases
+    ]
 
     cls["x_qualname"] = cls["namespace"] + "::" + cls["name"]
     cls["x_qualname_"] = cls["x_qualname"].replace(":", "_")
@@ -398,11 +410,16 @@ def class_hook(cls, data):
         if fn["constructor"]:
             has_constructor = True
         try:
-            _function_hook(fn, global_data, methods_data, MethodData)
+            _function_hook(fn, global_data, methods_data, MethodData, internal=True)
         except Exception as e:
             raise HookError(f"{cls['name']}::{fn['name']}") from e
     for fn in cls["methods"]["private"]:
         if fn["constructor"]:
             has_constructor = True
+
+    for v in cls["properties"]["public"]:
+        v["x_name"] = v["name"]
+    for v in cls["properties"]["protected"]:
+        v["x_name"] = "_" + v["name"]
 
     cls["x_has_constructor"] = has_constructor
