@@ -29,6 +29,9 @@ class BuildDl(Command):
             self.src_unpack_to = os.path.join(self.build_base, "dlsrc")
 
     def run(self):
+
+        print("BUILD_DL enter")
+
         for wrapper in self.wrappers:
             wrapper.on_build_dl(self.build_cache, self.src_unpack_to)
 
@@ -42,3 +45,5 @@ class BuildDl(Command):
             install_root = get_install_root(self)
             for wrapper in self.wrappers:
                 relink_libs(install_root, wrapper, self.rpybuild_pkgcfg)
+
+        print("BUILD_DL exit")

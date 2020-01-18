@@ -26,8 +26,14 @@ class BuildGen(Command):
             self.cxx_gen_dir = os.path.join(self.build_temp, "gensrc")
 
     def run(self):
+
+        print("BUILDGEN run enter")
+
         # files need to be downloaded before building can occur
         self.run_command("build_dl")
 
         for wrapper in self.wrappers:
+            print("BUILDGEN wrapper one")
             wrapper.on_build_gen(self.cxx_gen_dir)
+
+        print("BUILDGEN run exit")

@@ -7,6 +7,8 @@ class BuildPy(build_py):
 
     def run(self):
 
+        print("BUILDPY run enter")
+
         # files need to be generated before building can occur
         # -> otherwise they're not included in the bdist
         self.run_command("build_gen")
@@ -18,4 +20,8 @@ class BuildPy(build_py):
                     filenames.extend(wrapper.generated_files)
                     break
 
+        print("BUILDPY run mid")
+
         build_py.run(self)
+
+        print("BUILDPY run exit")

@@ -56,6 +56,9 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
 
     def build_extensions(self):
+
+        print("BUILDEXT enter")
+
         ct = self.compiler.compiler_type
         opts, link_opts = get_opts(ct)
 
@@ -93,12 +96,18 @@ class BuildExt(build_ext):
                     self.rpybuild_pkgcfg,
                 )
 
+        print("BUILDEXT exit")
+
     def run(self):
+
+        print("BUILDEXT run")
 
         # files need to be generated before building can occur
         self.run_command("build_gen")
 
         build_ext.run(self)
+
+        print("BUILDEXT run exit")
 
 
 if os.environ.get("RPYBUILD_PARALLEL") == "1":
