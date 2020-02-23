@@ -89,6 +89,23 @@ class FunctionData(Model):
     # Use this code instead of the generated code
     cpp_code: Optional[str] = None
 
+    # If this function has a virtual trampoline associated with it,
+    # insert this code instead.
+    #
+    # This will not automatically call the base or overloading python
+    # code. The following two macros will do that:
+    #
+    # * RPYBUILD_CALL_PYTHON_OVERLOAD
+    # * RPYBUILD_CALL_BASE - stores the return value in 'retval'
+    # * RPYBUILD_CALL_BASE_W_RET - returns
+    #
+    # If this is a pure virtual function, the following macro is also
+    # available:
+    #
+    # * RPYBUILD_PURE_FAILURE
+    #
+    trampoline_code: Optional[str] = None
+
     # Docstring for the function
     doc: Optional[str] = None
 

@@ -102,6 +102,18 @@ struct Py{{ cls.x_qualname_ }} : CxxBase {
     {# TODO: probably will break for things like out parameters, etc #}
     {% if fn.data.ignore_pure %}
         throw std::runtime_error("not implemented");
+    {% elif fn.data.trampoline_code %}
+        #define RPYBUILD_CALL_PYTHON_OVERLOAD PYBIND11_OVERLOAD_INT({{ fn.rtnType }}, CxxBase, "{{ fn.x_name }}", {{ fn.parameters | join(', ', attribute='name') }});
+        #define RPYBUILD_CALL_BASE {% if fn.rtnType != "void" %}auto retval = {% endif %}CxxBase::{{ fn.name }}({{ fn.parameters | join(', ', attribute='name') }});
+        #define RPYBUILD_CALL_BASE_W_RET return CxxBase::{{ fn.name }}({{ fn.parameters | join(', ', attribute='name') }});
+        {% if fn.pure_virtual %}#define RPYBUILD_PURE_FAILURE RPYBUILD_OVERLOAD_PURE_NAME_FAILURE({{ cls.name }}, {{ fn.name }}, "{{ fn.x_name }}");{% endif %}
+
+        {{ fn.data.trampoline_code }}
+
+        #undef RPYBUILD_CALL_PYTHON_OVERLOAD
+        #undef RPYBUILD_CALL_BASE
+        #undef RPYBUILD_CALL_BASE_W_RET
+        {% if fn.pure_virtual %}#undef RPYBUILD_PURE_FAILURE{% endif %}
     {% else %}
     {% if fn.pure_virtual -%}
         RPYBUILD_OVERLOAD_PURE_NAME({{ cls.name }},
@@ -109,7 +121,7 @@ struct Py{{ cls.x_qualname_ }} : CxxBase {
         PYBIND11_OVERLOAD_NAME(
     {%- endif -%}
         {{ fn.rtnType }}, CxxBase, "{{ fn.x_name }}", {{ fn.name }},{{ fn.parameters | join(', ', attribute='name') }});
-    {%- endif %}
+    {% endif %}
     }
 #endif
 

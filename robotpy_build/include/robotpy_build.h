@@ -19,8 +19,7 @@ template <class T> py::handle __get_handle(const T *this_ptr) {
     return py::detail::get_object_handle(this_ptr, this_type);
 }
 
-#define RPYBUILD_OVERLOAD_PURE_NAME(pyname, ret_type, cname, name, fn, ...) { \
-        PYBIND11_OVERLOAD_INT(PYBIND11_TYPE(ret_type), PYBIND11_TYPE(cname), name, __VA_ARGS__) \
+#define RPYBUILD_OVERLOAD_PURE_NAME_FAILURE(pyname, cname, name) \
         std::string __msg("<unknown> does not override required function \"" PYBIND11_STRINGIFY(pyname) "::" name "\""); \
         try { \
             py::gil_scoped_acquire gil; \
@@ -29,6 +28,9 @@ template <class T> py::handle __get_handle(const T *this_ptr) {
                 __msg = std::string(py::repr(self)) + " does not override required function \"" PYBIND11_STRINGIFY(pyname) "::" name "\""; \
             } \
         } catch (std::exception&) {} \
-        py::pybind11_fail(__msg); \
-    }
+        py::pybind11_fail(__msg);
 
+#define RPYBUILD_OVERLOAD_PURE_NAME(pyname, ret_type, cname, name, fn, ...) { \
+        PYBIND11_OVERLOAD_INT(PYBIND11_TYPE(ret_type), PYBIND11_TYPE(cname), name, __VA_ARGS__) \
+        RPYBUILD_OVERLOAD_PURE_NAME_FAILURE(pyname, cname, name) \
+    }
